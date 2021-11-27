@@ -5,6 +5,7 @@
 #   $cert     - required - path to certificate in PEM format
 #   $key      - required - path to unencrypted key in PEM format
 #   $nickname - optional - the nickname for the NSS certificate
+#   $certdir_managed - optional - is certdir managed by this module. Defaults to true
 #
 # Actions:
 #   loads certificate and key into the NSS database.
@@ -23,43 +24,29 @@
 #     }
 #
 define nsstools::add_cert_and_key (
-  $certdir,
-  $cert,
-  $key,
-  $nickname = $title
+  Stdlib::Absolutepath $certdir,
+  Stdlib::Absolutepath $cert,
+  Stdlib::Absolutepath $key,
+  String $nickname  = $title,
+  Boolean $certdir_managed = true,
 ) {
   include nsstools
 
-  validate_absolute_path($certdir)
-  validate_absolute_path($cert)
-  validate_absolute_path($key)
-  validate_string($nickname)
+  if ($certdir_managed) {
+    nsstools::create { $certdir: }
+  }
 
   # downcase and change spaces into _s
   $pkcs12_name = downcase(regsubst("${nickname}.p12", '[\s]', '_', 'GM'))
 
-  # the exec type in older versions of puppet don't support the umask param
-  if versioncmp($::puppetversion, '3.4.0') >= 0 {
-    exec {"generate_pkcs12_${title}":
-      command   => "/usr/bin/openssl pkcs12 -export -in ${cert} -inkey ${key} -password 'file:${certdir}/nss-password.txt' -out '${certdir}/${pkcs12_name}' -name '${nickname}'",
-      creates   => "${certdir}/${pkcs12_name}",
-      subscribe => File["${certdir}/nss-password.txt"],
-      umask     => '7077',
-      require   => [
-        Nsstools::Create[$certdir],
-        Class['nsstools'],
-      ],
-    }
-  } else {
-    exec {"generate_pkcs12_${title}":
-      command   => "/usr/bin/openssl pkcs12 -export -in ${cert} -inkey ${key} -password 'file:${certdir}/nss-password.txt' -out '${certdir}/${pkcs12_name}' -name '${nickname}'",
-      creates   => "${certdir}/${pkcs12_name}",
-      subscribe => File["${certdir}/nss-password.txt"],
-      require   => [
-        Nsstools::Create[$certdir],
-        Class['nsstools'],
-      ],
-    }
+  exec {"generate_pkcs12_${title}":
+    command => "/usr/bin/openssl pkcs12 -export -in ${cert} -inkey ${key} -password 'file:${certdir}/nss-password.txt' -out '${certdir}/${pkcs12_name}' -name '${nickname}'", # lint:ignore:140chars
+    creates => "${certdir}/${pkcs12_name}",
+    umask   => '7077',
+    require => [
+      Nsstools::Create[$certdir],
+      Class['nsstools'],
+    ],
   }
 
   exec { "add_pkcs12_${title}":
@@ -73,5 +60,4 @@ define nsstools::add_cert_and_key (
       Class['nsstools'],
     ],
   }
-
 }

@@ -10,11 +10,11 @@ class nsstools (
   if $require_openssl {
     include openssl
 
-    Class['openssl'] ->
-    Anchor['nsstools::begin']
+    Class['openssl']
+    -> Anchor['nsstools::begin']
   }
 
-  anchor{ 'nsstools::begin': } ->
-  Package[$::nsstools::params::package_name] ->
-  anchor{ 'nsstools::end': }
+  anchor{ 'nsstools::begin': }
+  -> Package[$::nsstools::params::package_name]
+  -> anchor{ 'nsstools::end': }
 }
