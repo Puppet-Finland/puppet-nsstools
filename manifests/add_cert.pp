@@ -5,7 +5,6 @@
 #   $cert      - required - path to certificate in PEM format
 #   $nickname  - optional - the nickname for the NSS certificate
 #   $trustargs - optional - defaults to 'CT,,'
-#   $certdir_managed - optional - is certdir managed by this module. Defaults to true
 #
 # Actions:
 #   loads certificate and key into the NSS database.
@@ -27,7 +26,6 @@ define nsstools::add_cert(
   Stdlib::Absolutepath $cert,
   String $nickname  = $title,
   String $trustargs = 'CT,,',
-  Boolean $certdir_managed = true,
 ) {
   include nsstools
 

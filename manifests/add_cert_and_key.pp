@@ -5,8 +5,6 @@
 #   $cert     - required - path to certificate in PEM format
 #   $key      - required - path to unencrypted key in PEM format
 #   $nickname - optional - the nickname for the NSS certificate
-#   $certdir_managed - optional - is certdir managed by this module. Defaults to true
-#   $password - required - password to nss database
 #
 # Actions:
 #   loads certificate and key into the NSS database.
@@ -29,16 +27,9 @@ define nsstools::add_cert_and_key (
   Stdlib::Absolutepath $certdir,
   Stdlib::Absolutepath $cert,
   Stdlib::Absolutepath $key,
-  String $password,
   String $nickname  = $title,
-  Boolean $certdir_managed = true,
 ) {
   include nsstools
-
-  nsstools::create { $certdir:
-    password        => $password,
-    certdir_managed => $certdir_managed,
-  }
 
   # downcase and change spaces into _s
   $pkcs12_name = downcase(regsubst("${nickname}.p12", '[\s]', '_', 'GM'))
