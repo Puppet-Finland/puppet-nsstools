@@ -42,12 +42,6 @@ define nsstools::add_certbundle(
     mode    => '0700',
   }
 
-  file { 'monitor bundle file changes':
-    ensure => 'file',
-    path   => $bundlefile,
-    notify => Exec["add_certbundle_${title}"],
-  }
-
   exec { "add_certbundle_${title}":
     command     => '/root/certextract',
     logoutput   => true,
@@ -56,6 +50,5 @@ define nsstools::add_certbundle(
       Class['nsstools'],
       File['/root/certextract'],
     ],
-    refreshonly => true,
   }
 }
