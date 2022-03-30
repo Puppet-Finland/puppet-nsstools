@@ -1,0 +1,17 @@
+<%- |
+Stdlib::Absolutepath $bundlefile,
+Stdlib::Absolutepath $certdir,
+Stdlib::Absolutepath $temppath,
+String $trustargs
+| -%>
+#!/bin/bash
+awk 'BEGIN {c=0;} /BEGIN CERT/{c++} { print > "<%= $temppath %>/cert." c ".pem"}' < <%= $bundlefile %>
+for f in $(find <%= $temppath %> -type f -name 'cert.*.*'); do
+  nickname=$(openssl x509 -in ${f} -text | grep 'Subject:' | cut -d: -f 2 | tr -d [:space:])
+  if ! certutil -L -d <%= $certdir %> | grep -q ${nickname} ; then
+    rm -f <%= $temppath %>/cert.*
+    exit 1
+  fi
+  rm -f "${f}"
+done
+exit 0
