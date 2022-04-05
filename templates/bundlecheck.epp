@@ -9,7 +9,9 @@ awk 'BEGIN {c=0;} /BEGIN CERT/{c++} { print > "<%= $temppath %>/cert." c ".pem"}
 for f in $(find <%= $temppath %> -type f -name 'cert.*.*'); do
   nickname=$(openssl x509 -in ${f} -text | grep 'Subject:' | cut -d: -f 2 | tr -d [:space:])
   if ! certutil -d /etc/httpd/alias -V -n "${nickname}" -u A >/dev/null 2>&1 ;then
-     certutil -d <%= $certdir %> -A -n ${nickname} -t '<%= $trustargs %>' -a -i ${f}
+    rm -f <%= $temppath %>/cert.*
+    exit 1
   fi
-rm -f "${f}"
+  rm -f "${f}"
 done
+exit 0

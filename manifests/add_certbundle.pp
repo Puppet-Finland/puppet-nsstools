@@ -42,8 +42,22 @@ define nsstools::add_certbundle(
     mode    => '0700',
   }
 
+  file { '/root/bundlecheck':
+    ensure  => 'present',
+    content => epp('nsstools/bundlecheck.epp', {
+      'bundlefile' => $bundlefile,
+      'certdir'    => $certdir,
+      'temppath'   => $temppath,
+      'trustargs'  => $trustargs,
+    }),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0700',
+  }
+
   exec { "add_certbundle_${title}":
     command     => '/root/certextract',
+    unless      => '/root/bundlecheck',
     logoutput   => true,
     require     => [
       Nsstools::Create[$certdir],
